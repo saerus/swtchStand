@@ -7,11 +7,16 @@ ModelImporter:
   fileIDToRecycleName:
     100000: polySurface12_group7
     100002: //RootNode
+    100004: polySurface53_group8
     400000: polySurface12_group7
     400002: //RootNode
+    400004: polySurface53_group8
     2300000: polySurface12_group7
+    2300002: polySurface53_group8
     3300000: polySurface12_group7
+    3300002: polySurface53_group8
     4300000: polySurface12_group7
+    4300002: polySurface53_group8
   materials:
     importMaterials: 1
     materialName: 0
