@@ -8,15 +8,20 @@ ModelImporter:
     100000: //RootNode
     100002: polySurface17_group7
     100004: polySurface54_group8
+    100006: london
     400000: //RootNode
     400002: polySurface17_group7
     400004: polySurface54_group8
+    400006: london
     2300000: polySurface17_group7
     2300002: polySurface54_group8
+    2300004: london
     3300000: polySurface17_group7
     3300002: polySurface54_group8
+    3300004: london
     4300000: polySurface17_group7
     4300002: polySurface54_group8
+    4300004: london
   materials:
     importMaterials: 1
     materialName: 0

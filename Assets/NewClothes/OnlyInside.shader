@@ -26,6 +26,7 @@
         // If the object is convex, these will always be further away
         // than the front-faces.
         Pass {
+        	ZWrite Off
             Cull Front
             SetTexture [_MainTex] {
                 Combine Primary * Texture
