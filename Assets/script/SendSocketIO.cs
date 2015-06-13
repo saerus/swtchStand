@@ -42,14 +42,17 @@ public class SendSocketIO : MonoBehaviour
 		GameObject go = GameObject.Find("SocketIO");
 		socket = go.GetComponent<SocketIOComponent>();
 		
-		socket.On("open", TestOpen);
+		socket.On("open", Open);
+		socket.On("connect", Connect);
+		socket.On("message", onMessage);
+
 		socket.On("updateCloth", TestUpdateCloth);
-		socket.On("setColor", TestSetColor);
+		socket.On("setColor", SetColor);
 		socket.On("error", TestError);
 		socket.On("close", TestClose);
 		
 		StartCoroutine("BeepBoop");
-		test.AddField("Clothes", "Chemise");
+		test.AddField("cloth", "London");
 		Debug.Log ("test "+ test);
 	}
 	
@@ -69,6 +72,23 @@ public class SendSocketIO : MonoBehaviour
 //		yield return new WaitForSeconds(2);
 //		
 //		socket.Emit("beep", test);
+		yield return new WaitForSeconds(1);
+
+
+
+		JSONObject message = new JSONObject();
+		message.AddField("client","webinterface");
+		message.AddField("action","changeCloth");
+		message.AddField("cloth", "London");
+		socket.Emit("message", message);
+
+		yield return new WaitForSeconds(3);
+
+		JSONObject message2 = new JSONObject();
+		message2.AddField("client","webinterface");
+		message2.AddField("action","changeCloth");
+		message2.AddField("cloth", "Bob");
+		socket.Emit("message", message2);
 //		
 //		// wait ONE FRAME and continue
 				yield return null;
@@ -76,10 +96,37 @@ public class SendSocketIO : MonoBehaviour
 //		socket.Emit("beep", test);
 //		socket.Emit("beep", test);
 	}
+
+	public void Connect(SocketIOEvent e)
+	{
+		Debug.Log("[SocketIO] Connect received: " + e.name + " " + e.data);
+		JSONObject connectDebug = new JSONObject();
+		connectDebug.AddField("client", "unity");
+		socket.Emit("connected", connectDebug);
+	}
 	
-	public void TestOpen(SocketIOEvent e)
+	public void Open(SocketIOEvent e)
 	{
 		Debug.Log("[SocketIO] Open received: " + e.name + " " + e.data);
+	}
+
+	public void onMessage(SocketIOEvent e)
+	{
+		Debug.Log("[SocketIO] Message received");
+		Debug.Log("[SocketIO] Message received: " + e.name + " " + e.data);
+		string client = e.data.GetField("client").str;
+		if(client.Equals("unity")){
+			string action = e.data.GetField("action").str;
+			if(action.Equals("changeImg")){
+
+
+
+			}
+		}
+
+
+
+		string url = "http://www.fragment.in/unity/img/cff.png";
 	}
 	
 	public void TestUpdateCloth(SocketIOEvent e)
@@ -122,7 +169,7 @@ public class SendSocketIO : MonoBehaviour
 		return output;
 	}
 	
-	public void TestSetColor(SocketIOEvent e)
+	public void SetColor(SocketIOEvent e)
 	{
 		Debug.Log("[SocketIO] Message received: " + e.name + " " + e.data);
 		
