@@ -29,27 +29,33 @@
 using System.Collections;
 using UnityEngine;
 using SocketIO;
+using System;
 
 public class SendSocketIO : MonoBehaviour
 {
 	private SocketIOComponent socket;
 	JSONObject test = new JSONObject();
 
+	//*IMPORTANT* A remplacer par le bon objet !
 	public Color color;
+
+	//*IMPORTANT* A remplacer par le bon objet ! 
+	public GameObject textureHolder;
+
+	//Coroutine pour charger un logo
+	IEnumerator LoadImg;
 	
 	public void Start() 
 	{
 		GameObject go = GameObject.Find("SocketIO");
 		socket = go.GetComponent<SocketIOComponent>();
 		
-		socket.On("open", Open);
-		socket.On("connect", Connect);
+		socket.On("open", onOpen);
+		socket.On("connect", onConnect);
 		socket.On("message", onMessage);
 
-		socket.On("updateCloth", TestUpdateCloth);
-		socket.On("setColor", SetColor);
-		socket.On("error", TestError);
-		socket.On("close", TestClose);
+		socket.On("error", onError);
+		socket.On("close", onClose);
 		
 		StartCoroutine("BeepBoop");
 		test.AddField("cloth", "London");
@@ -79,7 +85,7 @@ public class SendSocketIO : MonoBehaviour
 		JSONObject message = new JSONObject();
 		message.AddField("client","webinterface");
 		message.AddField("action","changeCloth");
-		message.AddField("cloth", "London");
+		message.AddField("cloth", "Steve");
 		socket.Emit("message", message);
 
 		yield return new WaitForSeconds(3);
@@ -87,7 +93,7 @@ public class SendSocketIO : MonoBehaviour
 		JSONObject message2 = new JSONObject();
 		message2.AddField("client","webinterface");
 		message2.AddField("action","changeCloth");
-		message2.AddField("cloth", "Bob");
+		message2.AddField("cloth", "Victor");
 		socket.Emit("message", message2);
 //		
 //		// wait ONE FRAME and continue
@@ -97,7 +103,7 @@ public class SendSocketIO : MonoBehaviour
 //		socket.Emit("beep", test);
 	}
 
-	public void Connect(SocketIOEvent e)
+	public void onConnect(SocketIOEvent e)
 	{
 		Debug.Log("[SocketIO] Connect received: " + e.name + " " + e.data);
 		JSONObject connectDebug = new JSONObject();
@@ -105,92 +111,160 @@ public class SendSocketIO : MonoBehaviour
 		socket.Emit("connected", connectDebug);
 	}
 	
-	public void Open(SocketIOEvent e)
+	public void onOpen(SocketIOEvent e)
 	{
 		Debug.Log("[SocketIO] Open received: " + e.name + " " + e.data);
 	}
 
 	public void onMessage(SocketIOEvent e)
 	{
-		Debug.Log("[SocketIO] Message received");
 		Debug.Log("[SocketIO] Message received: " + e.name + " " + e.data);
+
+		if (e.data == null) {
+			Debug.Log("[SocketIO] Message contains no data / function stopped");
+			return; 
+		}
+
 		string client = e.data.GetField("client").str;
+
+		/*Self assigned destination*/
 		if(client.Equals("unity")){
 			string action = e.data.GetField("action").str;
+			Debug.Log ("Action is  :  "+action);
+
 			if(action.Equals("changeImg")){
 
+				//string url = "http://www.fragment.in/unity/img/cff.png";
+				//*IMPORTANT* A remplacer par le bon url !
+				string baseUrl = "localhost:8888/switcher/server/";
+				string imgUrl = e.data.GetField("url").str;
 
+				WWW www = new WWW(baseUrl+imgUrl);
+
+				Debug.Log ("Started change IMG : "+imgUrl);
+
+				LoadImg = DownloadImage(www);
+				StartCoroutine(LoadImg);
+			}else if(action.Equals("changeColor")){
+
+				//*IMPORTANT* A remplacer par le bon objet !
+				color = ParseColor(e.data.GetField("color").str); 
+				//Debug.Log(color);
+
+			/*Set position first once */
+			}else if(action.Equals("setPosition")){
+
+				//*IMPORTANT* A remplacer par le bon objet !
+				float x = float.Parse(e.data.GetField("x").str);
+				float y = float.Parse(e.data.GetField("y").str);
+				float size = float.Parse(e.data.GetField("size").str);
+				bool inverted = bool.Parse(e.data.GetField("inverted").str);
+
+				Debug.Log(" x : "+x+" / y : "+y+" / size : "+size+" / inverted : "+inverted);
+			}
+			/*Update position after */
+			else if(action.Equals("updatePosition")){
+
+				//*IMPORTANT* A remplacer par le bon objet !
+				string position = e.data.GetField("position").str; 
+				Debug.Log("position : "+position);
+			}
+			/*Take screenshot*/
+			else if(action.Equals("takeScreenshot")){
+				
+				//*IMPORTANT* A remplacer par le bon objet !
+				Debug.Log("take screenshot ");
+
+				//Try and catch doesn't work properly
+//				try{
+//					Application.CaptureScreenshot("Resources/Screenshot.png");
+//				}
+//				catch (Exception en) {
+//					print("catch an error : "+en);
+//					string persistentDataPath = null;
+//					if (persistentDataPath == null)
+//						persistentDataPath = Application.persistentDataPath;        
+//					Debug.Log("Data Path =  " + persistentDataPath); // If you want to easily see where that is.
+//					print("changed data path");
+//					Application.CaptureScreenshot(persistentDataPath+"Screenshot.png");
+//				} 
+//				Debug.Log("screenshot taken ");
+
+				//save to persistent data path otherwise unity throw an error / because it is IOS ?
+				string persistentDataPath = null;
+				if (persistentDataPath == null)
+					persistentDataPath = Application.persistentDataPath;        
+				Debug.Log("Data Path =  " + persistentDataPath); // If you want to easily see where that is.
+				Application.CaptureScreenshot(persistentDataPath+"Screenshot.png");
+				Debug.Log("screenshot taken ");
 
 			}
 		}
+	}
 
+	IEnumerator DownloadImage(WWW wwwimg2){
 
+		Debug.Log ("Started DownloadImage ");
+		
+		// Create a texture in DXT1 format
+		textureHolder.GetComponent<Renderer>().material.mainTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
+		
+		while(true) {
 
-		string url = "http://www.fragment.in/unity/img/cff.png";
+			// wait until the download is done
+			yield return wwwimg2;
+			
+			// assign the downloaded image to the main texture of the object
+			wwwimg2.LoadImageIntoTexture(textureHolder.GetComponent<Renderer>().material.mainTexture as Texture2D);
+
+			Debug.Log ("Image replaced");
+			//yield return null;
+			StopCoroutine(LoadImg);
+		}
+		
 	}
 	
-	public void TestUpdateCloth(SocketIOEvent e)
-	{
-		Debug.Log("[SocketIO] Message received: " + e.name + " " + e.data);
-		
-		if (e.data == null) { return; }
-
-		string client = e.data.GetField("client").str;
-		if(client.Equals("unity")){
-			Debug.Log ("unity is for me!!");
-		}
-		Debug.Log ("color : "+e.data.GetField("color").str);
-		//Debug.Log ("brand : "+e.data.GetField("brand").str);
-		color = ParseColor(e.data.GetField("color").str); 
-		Debug.Log (color);
 
 
-		
-		
-		
-		
+	static public float map(float value, float istart, float istop, float ostart, float ostop) {
+		return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
 	}
-
-
-	public Color ParseColor(string ColorToParse){
+	
+	
+	static public Color ParseColor(string ColorToParse){
 		//Takes strings formatted with rgb(red, green, blue);
-		Debug.Log ("try to split");
+
 		string[] isolate = ColorToParse.Split('(');
 		string[] isolate2 = isolate[1].Split(')');
-		Debug.Log ("isolate "+isolate2[0]);
+
 		string[] colors = isolate2[0].Split(',');
-//		int green = int.Parse(isolate.Split(","[1] ));
-//      	int blue = int.Parse(isolate.Split(","[2] ));
-//		
+
+		//Debug.Log ("before Decoded slow : color  "+colors[0]+" , "+colors[1]+" , "+colors[2]);
+
+
+		float red = map(float.Parse(colors[0]),0.0f,255.0f,0.0f,1.0f);
+		float green = map(float.Parse(colors[1]),0.0f,255.0f,0.0f,1.0f);
+		float blue = map(float.Parse(colors[2]),0.0f,255.0f,0.0f,1.0f);
+
+		//Debug.Log ("Decoded slow : color  "+red+" , "+green+" , "+blue);
 
 		//Color output = new Color(red,green,blue);
-		Color output = new Color(int.Parse(colors[0]),int.Parse(colors[1]),int.Parse(colors[2]));
-		Debug.Log ("Decoded : color  "+output);
+		Color output = new Color(red,green,blue);
+		//Debug.Log ("Decoded : color  "+output);
 		return output;
 	}
+
 	
-	public void SetColor(SocketIOEvent e)
-	{
-		Debug.Log("[SocketIO] Message received: " + e.name + " " + e.data);
-		
-		if (e.data == null) { return; }
-
-		string client = e.data.GetField("client").str;
-		if(client.Equals("unity")){
-			Debug.Log ("unity is for me!!");
-			Debug.Log ("color : "+e.data.GetField("color").str);
-		}
-
-
-	}
-	
-	public void TestError(SocketIOEvent e)
+	public void onError(SocketIOEvent e)
 	{
 		Debug.Log("[SocketIO] Error received: " + e.name + " " + e.data);
 	}
 	
-	public void TestClose(SocketIOEvent e)
+	public void onClose(SocketIOEvent e)
 	{	
 		Debug.Log("[SocketIO] Close received: " + e.name + " " + e.data);
 	}
+
+
+	
 }
