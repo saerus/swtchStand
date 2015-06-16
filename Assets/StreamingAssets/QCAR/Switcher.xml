@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<QCARConfig>
-    <Tracking>
-        <ImageTarget name="LONDON_PAPIER-02" size="9.000000 6.370313"/>
-        <ImageTarget name="LONDON_PAPIER-01" size="9.000000 6.370313"/>
-        <ImageTarget name="LONDON_C.Back" size="7 5"/>
-        <ImageTarget name="LONDON_C.Front" size="7 5"/>
-        <MultiTarget name="LONDON_C">
-            <Part name="LONDON_C.Front" translation="0 0 0.05000000074505806" rotation="AD: 1 0 0 0"/>
-            <Part name="LONDON_C.Back" translation="0 0 -0.05000000074505806" rotation="AD: 0 1 0 180"/>
-        </MultiTarget>
-    </Tracking>
+<QCARConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="qcar_config.xsd">
+  <Tracking>
+    <ImageTarget name="LASTHOPE_verso" size="9.000000 6.973366" />
+    <ImageTarget name="Hope_Recto" size="9.000000 6.973366" />
+  </Tracking>
 </QCARConfig>

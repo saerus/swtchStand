@@ -127,23 +127,28 @@ public class SendSocketIO : MonoBehaviour
 			} else if(action.Equals("changeCloth")) {
 
 				string position = e.data.GetField("name").str;
-				Debug.Log("%%% CHANGE CLOTHHRTHH  "+position);
+				//Debug.Log("%%% CHANGE CLOTHHRTHH  "+position);
 				foreach (GameObject go in cloths) {
 					go.SetActive(false);
 				}
 				if(position.Equals("Bob")) {
 					cloths[0].SetActive(true);
+					cloths[5].SetActive(true);
 				} else if (position.Equals("Steve")) {
 					cloths[1].SetActive(true);
+					cloths[6].SetActive(true);
 
 				} else if(position.Equals("Victor")) {
 					cloths[2].SetActive(true);
+					cloths[7].SetActive(true);
 
 				} else if(position.Equals("John")) {
 					cloths[3].SetActive(true);
+					cloths[8].SetActive(true);
 					
 				} else if(position.Equals("London")) {
 					cloths[4].SetActive(true);
+					cloths[9].SetActive(true);
 					
 				}
 			} else if(action.Equals("setPosition")){
